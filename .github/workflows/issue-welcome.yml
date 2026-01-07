@@ -15,7 +15,7 @@ jobs:
         with:
           script: |
             const issue = context.payload.issue;
-            const isTest = issue.labels.some(label => label.name === 'test');
+            const isTest = issue.title.includes('[TEST]') || issue.labels.some(label => label.name === 'test');
             
             let message = `👋 Thank you for opening this issue!\n\n`;
             
