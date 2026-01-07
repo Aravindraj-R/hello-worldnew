@@ -1,0 +1,54 @@
+name: Issue Welcome
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add welcome comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const isTest = issue.labels.some(label => label.name === 'test');
+            
+            let message = `👋 Thank you for opening this issue!\n\n`;
+            
+            if (isTest) {
+              message += `🧪 This appears to be a **test issue**. The following has been verified:\n`;
+              message += `- ✅ Issue created successfully\n`;
+              message += `- ✅ Issue title and description formatted correctly\n`;
+              message += `- ✅ Automated workflow triggered as expected\n`;
+              message += `- ✅ Labels applied automatically\n\n`;
+              message += `This test issue can be closed once testing is complete.`;
+            } else {
+              message += `A maintainer will review this issue shortly. In the meantime:\n`;
+              message += `- Please ensure you've provided all necessary information\n`;
+              message += `- Check if there are any similar existing issues\n`;
+              message += `- Follow up with any additional details if needed\n\n`;
+              message += `We appreciate your contribution to improving this project! 🙏`;
+            }
+            
+            await github.rest.issues.createComment({
+              issue_number: issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+
+      - name: Add test label
+        if: contains(github.event.issue.title, '[TEST]')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['test']
+            });
